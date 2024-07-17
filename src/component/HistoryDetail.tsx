@@ -41,14 +41,14 @@ export default function HistoryDetail({ work }: { work: z.infer<typeof workSchem
               case "prompt":
                 title = "创意描述";
                 break;
-              case "style":
-                title = "风格";
-                break;
               case "aspect_ratio":
                 title = "图片比例";
                 break;
               case "imageCount":
                 title = "图片数量";
+                break;
+              case "fidelity":
+                title = "参考强度";
                 break;
               default:
                 return null;

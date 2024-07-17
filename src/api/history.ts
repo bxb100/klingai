@@ -1,7 +1,6 @@
 import { historyItemSchema, worksResSchema } from "../types";
 import { z } from "zod";
 import { useFetch } from "@raycast/utils";
-import { useEffect } from "react";
 
 const api = "https://klingai.kuaishou.com/api/user/works/personal/v2";
 
