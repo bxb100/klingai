@@ -8,7 +8,7 @@ import {
 } from "../types";
 import { z } from "zod";
 import path from "node:path";
-import { concatMap, delay, firstValueFrom, from, map, retry, tap } from "rxjs";
+import { concatMap, defer, delay, firstValueFrom, map, retry, tap } from "rxjs";
 import * as fs from "node:fs";
 
 const uploadIssueTokenAPI = "https://klingai.kuaishou.com/api/upload/issue/token";
@@ -68,7 +68,7 @@ export function upload(filepath: string, cookie: string): Promise<string> {
   const filename = path.parse(filepath).base;
 
   const resume$ = (state: UploadState) =>
-    from(uploadResume(state.endpoint, state.token)).pipe(
+    defer(() => uploadResume(state.endpoint, state.token)).pipe(
       tap(console.debug),
       map((res) => {
         if (res.result === 1) {
@@ -80,7 +80,7 @@ export function upload(filepath: string, cookie: string): Promise<string> {
     );
 
   const fragment$ = (state: UploadState) =>
-    from(uploadFragment(state.endpoint, state.token, fs.readFileSync(filepath))).pipe(
+    defer(() => uploadFragment(state.endpoint, state.token, fs.readFileSync(filepath))).pipe(
       tap(console.debug),
       map((res) => {
         if (res.result === 1) {
@@ -92,7 +92,7 @@ export function upload(filepath: string, cookie: string): Promise<string> {
     );
 
   const complete$ = (state: UploadState) =>
-    from(uploadComplete(state.endpoint, state.token)).pipe(
+    defer(() => uploadComplete(state.endpoint, state.token)).pipe(
       tap(console.debug),
       map((res) => {
         if (res.result === 1) {
@@ -106,7 +106,7 @@ export function upload(filepath: string, cookie: string): Promise<string> {
     );
 
   const verify$ = (state: UploadState) =>
-    from(uploadVerify(state.token, cookie)).pipe(
+    defer(() => uploadVerify(state.token, cookie)).pipe(
       map((res) => {
         if (res.status === 200) {
           return res.data.url;
@@ -120,7 +120,7 @@ export function upload(filepath: string, cookie: string): Promise<string> {
     );
 
   return firstValueFrom(
-    from(uploadIssueToken(filename, cookie))
+    defer(() => uploadIssueToken(filename, cookie))
       .pipe(
         tap(console.log),
         concatMap((res) =>

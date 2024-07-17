@@ -1,11 +1,6 @@
-import { Action, ActionPanel, Detail, getPreferenceValues, Grid, open } from "@raycast/api";
+import { Action, ActionPanel, getPreferenceValues, Grid } from "@raycast/api";
 import { userWorksPersonalV2 } from "./api/history";
 import { showFailureToast } from "@raycast/utils";
-import { workSchema } from "./types";
-import { z } from "zod";
-import { homedir } from "node:os";
-import fetch from "node-fetch";
-import * as fs from "node:fs";
 import HistoryDetail from "./component/HistoryDetail";
 
 export default function Command() {
