@@ -1,0 +1,55 @@
+{
+    "$schema": "https://www.raycast.com/schemas/extension.json",
+    "name": "klingai",
+    "title": "klingai",
+    "description": "可灵 AI - 新一代 AI 创意生产力工具",
+    "icon": "kling-logo.png",
+    "author": "Lemon",
+    "license": "MIT",
+    "commands": [
+        {
+            "name": "history",
+            "title": "Show Image History",
+            "description": "Show your image creature history in Kling",
+            "mode": "view"
+        },
+        {
+            "name": "image",
+            "title": "Create Image",
+            "description": "Create an image in Kling",
+            "mode": "view"
+        }
+    ],
+    "preferences": [
+        {
+            "name": "cookie",
+            "title": "Cookie",
+            "description": "Your cookie in Kling",
+            "type": "textfield",
+            "required": true
+        }
+    ],
+    "dependencies": {
+        "@raycast/api": "^1.78.1",
+        "@raycast/utils": "^1.16.2",
+        "node-fetch": "^3.3.2",
+        "rxjs": "^7.8.1",
+        "zod": "^3.23.8"
+    },
+    "devDependencies": {
+        "@raycast/eslint-config": "^1.0.8",
+        "@types/node": "20.8.10",
+        "@types/react": "18.3.3",
+        "eslint": "^8.57.0",
+        "prettier": "^3.3.3",
+        "typescript": "^5.4.5"
+    },
+    "scripts": {
+        "build": "ray build -e dist",
+        "dev": "ray develop",
+        "fix-lint": "ray lint --fix",
+        "lint": "ray lint",
+        "prepublishOnly": "echo \"\\n\\nIt seems like you are trying to publish the Raycast extension to npm.\\n\\nIf you did intend to publish it to npm, remove the \\`prepublishOnly\\` script and rerun \\`npm publish\\` again.\\nIf you wanted to publish it to the Raycast Store instead, use \\`npm run publish\\` instead.\\n\\n\" && exit 1",
+        "publish": "npx @raycast/api@latest publish"
+    }
+}
