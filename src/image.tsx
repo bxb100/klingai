@@ -8,6 +8,7 @@ import path from "node:path";
 import { upload } from "./api/upload";
 import { argumentSchema, taskInputSchema } from "./types";
 import TaskGenPage from "./component/TaskGenPage";
+import { styles } from "./util";
 
 type FormValues = {
   prompt: string;
@@ -51,7 +52,7 @@ export default function Command() {
         { name: "prompt", value: values.prompt },
         {
           name: "style",
-          value: "默认",
+          value: values.style,
         },
         { name: "aspect_ratio", value: values.aspect_ratio },
         {
@@ -77,7 +78,7 @@ export default function Command() {
       );
 
       toast.style = Toast.Style.Success;
-      toast.title = "图片生成成功";
+      toast.title = "生成任务已提交";
       toast.message = `任务ID: ${res.data.task.id}`;
       console.log(res.data.task.id);
       push(<TaskGenPage id={res.data.task.id} cookie={cookie} />);
@@ -87,6 +88,7 @@ export default function Command() {
       aspect_ratio: "1:1",
       imageCount: "4",
       fidelity: "0.25",
+      style: "默认",
       filePath: undefined,
       urlPath: undefined,
     },
@@ -145,9 +147,7 @@ export default function Command() {
           <Action.SubmitForm title="立即生成" onSubmit={handleSubmit} />
         </ActionPanel>
       }
-      searchBarAccessory={
-        <Form.LinkAccessory target="https://klingai.kuaishou.com/text-to-image/new" text="可灵 AI 图片 Web 端" />
-      }
+      searchBarAccessory={<Form.LinkAccessory target="https://klingai.kuaishou.com/text-to-image/new" text="可灵 AI" />}
     >
       <Form.TextArea title={"创意描述"} {...itemProps.prompt} />
       <Form.Checkbox
@@ -178,6 +178,12 @@ export default function Command() {
       {usingInput > 0 && <Form.TextField title={"参考强度"} info={"数值越大参考强度越大"} {...itemProps.fidelity} />}
 
       <Form.Separator />
+      <Form.Dropdown title={"风格"} {...itemProps.style}>
+        {styles.map((value) => {
+          const zh = value[1].caption.zh;
+          return <Form.Dropdown.Item title={zh} value={zh} icon={value[1].image} key={value[0]} />;
+        })}
+      </Form.Dropdown>
       <Form.Dropdown title={"比例"} {...itemProps.aspect_ratio}>
         <Form.Dropdown.Item title={"1:1"} value={"1:1"} />
         <Form.Dropdown.Item title={"16:9"} value={"16:9"} />

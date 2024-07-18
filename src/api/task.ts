@@ -2,6 +2,7 @@ import { deleteWorksSchema, nullResSchema, taskStatusResSchema, taskSubmitResSch
 import { z } from "zod";
 import { defer, delay, map, retry, tap, timer } from "rxjs";
 import fetch from "node-fetch";
+import { isTaskStatusFailed, isTaskStatusProcessing } from "../util";
 
 const submitAPI = "https://klingai.kuaishou.com/api/task/submit";
 const statusAPI = "https://klingai.kuaishou.com/api/task/status";
@@ -37,15 +38,18 @@ export function checkStatusUntilDone(
   return defer(() => status(taskId, cookie)).pipe(
     tap((res) => callback(res)),
     map((res) => {
-      if (res.status === 200 && res.data.status >= 90) {
-        return res;
+      if (isTaskStatusProcessing(res.data.status)) {
+        throw new Error(`Task<${taskId}> is still processing`);
       }
-      throw new Error("Task is not done yet");
+      if (isTaskStatusFailed(res.data.status)) {
+        throw new Error(`Task<${taskId}>[${res.status}]${res.message}`);
+      }
+      return res;
     }),
     delay(3000),
     retry({
       count: 10,
-      delay: (error, b) => timer((2 ^ (b + 1)) * 1000),
+      delay: (_e, b) => timer((2 ^ b) * 1000),
     }),
   );
 }

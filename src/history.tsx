@@ -36,23 +36,28 @@ export default function Command() {
       {history &&
         history.map((item) => (
           <Grid.Section title={item.task.taskInfo.arguments[0].value} key={item.task.id}>
-            {item.works.map((work) => (
-              <Grid.Item
-                actions={
-                  <ActionPanel>
-                    <Action.Push title={"Detail"} target={<HistoryDetail work={work} />} />
-                    <Action
-                      icon={Icon.Trash}
-                      style={Action.Style.Destructive}
-                      title={"Delete"}
-                      onAction={() => deleteTask(work.taskId, work.workId)}
-                    />
-                  </ActionPanel>
-                }
-                content={work.resource.resource + "?x-oss-process=image/resize%2Cw_376%2Ch_376%2Cm_mfit"}
-                key={work.workItemId}
-              />
-            ))}
+            {item.works.map((work) => {
+              return (
+                <Grid.Item
+                  actions={
+                    <ActionPanel>
+                      <Action.Push title={"Detail"} target={<HistoryDetail work={work} />} />
+                      <Action
+                        icon={Icon.Trash}
+                        style={Action.Style.Destructive}
+                        title={"Delete"}
+                        onAction={() => deleteTask(work.taskId, work.workId)}
+                      />
+                    </ActionPanel>
+                  }
+                  content={{
+                    source: work.resource.resource + "?x-oss-process=image/resize%2Cw_376%2Ch_376%2Cm_mfit",
+                    fallback: "fail.png",
+                  }}
+                  key={work.workId}
+                />
+              );
+            })}
           </Grid.Section>
         ))}
     </Grid>

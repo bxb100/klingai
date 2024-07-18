@@ -59,7 +59,7 @@ export const taskSchema = z.object({
   id: z.number(),
   userId: z.number(),
   type,
-  status: z.number({ description: "" }),
+  status: z.number(),
   taskInfo: taskInfoSchema,
   favored: z.boolean().default(false),
   starred: z.boolean().default(false),

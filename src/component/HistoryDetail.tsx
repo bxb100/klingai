@@ -5,13 +5,24 @@ import { Action, ActionPanel, Detail, Icon, open, showToast, Toast } from "@rayc
 import fs from "node:fs";
 import fetch from "node-fetch";
 import Style = Toast.Style;
+import { useEffect, useState } from "react";
+import { lN } from "../util";
 
 export default function HistoryDetail({ work }: { work: z.infer<typeof workSchema> }) {
   const DOWNLOADS_DIR = `${homedir()}/Downloads`;
+  const [imageMd, setImageMd] = useState("");
+
+  useEffect(() => {
+    if (work.status === lN.SENSITIVE_RESULT) {
+      setImageMd(`![temp](fail.png?raycast-height=350)`);
+    } else {
+      setImageMd(`![temp](${work.resource.resource}?raycast-height=350)`);
+    }
+  }, [work]);
 
   return (
     <Detail
-      markdown={`![temp](${work.resource.resource})`}
+      markdown={imageMd}
       actions={
         <ActionPanel>
           <Action
@@ -52,6 +63,9 @@ export default function HistoryDetail({ work }: { work: z.infer<typeof workSchem
               case "imageCount":
                 title = "图片数量";
                 break;
+              case "style":
+                title = "风格";
+                break;
               case "fidelity":
                 title = "参考强度";
                 break;
@@ -64,7 +78,7 @@ export default function HistoryDetail({ work }: { work: z.infer<typeof workSchem
           {work.taskInfo.inputs
             .filter((i) => i.inputType === "URL")
             .map((input) => (
-              <Detail.Metadata.TagList title={"参考图"} key={input.url}>
+              <Detail.Metadata.TagList title={"参考图/垫图"} key={input.url}>
                 <Detail.Metadata.TagList.Item
                   icon={input.url + "?x-oss-process=image/resize%2Cw_36%2Ch_36%2Cm_mfit"}
                   onAction={() => open(input.url)}

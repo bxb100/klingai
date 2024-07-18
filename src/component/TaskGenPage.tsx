@@ -12,10 +12,7 @@ export default function TaskGenPage({ id, cookie }: { id: number; cookie: string
 
   useEffect(() => {
     console.log("fetching data", id, cookie);
-    checkStatusUntilDone(String(id), cookie, setData).subscribe({
-      next: (value) => {
-        setData(value);
-      },
+    const subscription = checkStatusUntilDone(String(id), cookie, setData).subscribe({
       error: (err) => {
         showFailureToast(err, { title: "Failed to fetch data" });
       },
@@ -23,25 +20,29 @@ export default function TaskGenPage({ id, cookie }: { id: number; cookie: string
         setLoading(false);
       },
     });
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [id, cookie]);
 
   return (
     <Grid isLoading={loading}>
       {data && (
         <Grid.Section title={data.data.task.taskInfo.arguments[0].value}>
-          {data.data.works
-            .filter((w) => w.status >= 90)
-            .map((work) => (
-              <Grid.Item
-                actions={
-                  <ActionPanel>
-                    <Action.Push title={"Detail"} target={<HistoryDetail work={work} />} />
-                  </ActionPanel>
-                }
-                content={work.resource.resource + "?x-oss-process=image/resize%2Cw_376%2Ch_376%2Cm_mfit"}
-                key={work.workItemId}
-              />
-            ))}
+          {data.data.works.map((work) => (
+            <Grid.Item
+              actions={
+                <ActionPanel>
+                  <Action.Push title={"Detail"} target={<HistoryDetail work={work} />} />
+                </ActionPanel>
+              }
+              content={{
+                source: work.resource.resource + "?x-oss-process=image/resize%2Cw_376%2Ch_376%2Cm_mfit",
+                fallback: "fail.png",
+              }}
+              key={work.workItemId}
+            />
+          ))}
         </Grid.Section>
       )}
     </Grid>
