@@ -79,6 +79,8 @@ const _resDataSchema = <T extends ZodTypeAny>(data: T) =>
     data: data,
   });
 
+export const nullResSchema = _resDataSchema(z.null());
+
 export const worksResSchema = _resDataSchema(
   z.object({
     limitations: limitationSchema.array(),
@@ -140,3 +142,12 @@ export const uploadVerifyResSchema = _resDataSchema(
     message: z.string(),
   }),
 );
+
+export const deleteWorksSchema = z.object({
+  workInfos: z
+    .object({
+      taskId: z.number(),
+      workId: z.number(),
+    })
+    .array(),
+});

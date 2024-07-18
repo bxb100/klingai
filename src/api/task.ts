@@ -1,4 +1,4 @@
-import { taskStatusResSchema, taskSubmitResSchema, taskSubmitSchema } from "../types";
+import { deleteWorksSchema, nullResSchema, taskStatusResSchema, taskSubmitResSchema, taskSubmitSchema } from "../types";
 import { z } from "zod";
 import { defer, delay, map, retry, tap, timer } from "rxjs";
 import fetch from "node-fetch";
@@ -48,4 +48,29 @@ export function checkStatusUntilDone(
       delay: (error, b) => timer((2 ^ (b + 1)) * 1000),
     }),
   );
+}
+
+export async function deleteTasks(taskIds: number[], cookie: string) {
+  const res = await fetch("https://klingai.kuaishou.com/api/task/del", {
+    method: "POST",
+    headers: {
+      Cookie: cookie,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ taskIds }),
+  });
+  return (await res.json()) as z.infer<typeof nullResSchema>;
+}
+
+export async function deleteWorks(payload: z.infer<typeof deleteWorksSchema>, cookie: string) {
+  const res = await fetch("https://klingai.kuaishou.com/api/works/del", {
+    method: "POST",
+    headers: {
+      Cookie: cookie,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  return (await res.json()) as z.infer<typeof nullResSchema>;
 }

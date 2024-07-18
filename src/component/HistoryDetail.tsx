@@ -1,9 +1,10 @@
 import { z } from "zod";
 import { workSchema } from "../types";
 import { homedir } from "node:os";
-import { Action, ActionPanel, Detail, open } from "@raycast/api";
+import { Action, ActionPanel, Detail, Icon, open, showToast, Toast } from "@raycast/api";
 import fs from "node:fs";
 import fetch from "node-fetch";
+import Style = Toast.Style;
 
 export default function HistoryDetail({ work }: { work: z.infer<typeof workSchema> }) {
   const DOWNLOADS_DIR = `${homedir()}/Downloads`;
@@ -13,22 +14,26 @@ export default function HistoryDetail({ work }: { work: z.infer<typeof workSchem
       markdown={`![temp](${work.resource.resource})`}
       actions={
         <ActionPanel>
-          <Action.ShowInFinder
+          <Action
+            icon={Icon.Download}
             title={"Download"}
-            path={`${DOWNLOADS_DIR}/.DS_Store`}
-            onShow={() => {
+            onAction={async () => {
+              const toast = await showToast(Style.Animated, "Downloading...", "Please wait");
               const dest = `${DOWNLOADS_DIR}/${work.workId}.png`;
-              if (fs.existsSync(dest)) {
-                return;
-              }
-              fetch(work.resource.resource).then(async (res) => {
-                const fileStream = fs.createWriteStream(dest);
-                await new Promise((resolve, reject) => {
-                  res.body!.pipe(fileStream);
-                  res.body!.on("error", reject);
-                  fileStream.on("finish", resolve);
+              if (!fs.existsSync(dest)) {
+                await fetch(work.resource.resource).then(async (res) => {
+                  const fileStream = fs.createWriteStream(dest);
+                  return await new Promise((resolve, reject) => {
+                    res.body!.pipe(fileStream);
+                    res.body!.on("error", reject);
+                    fileStream.on("finish", resolve);
+                  });
                 });
-              });
+              }
+              toast.style = Style.Success;
+              toast.title = "Downloaded";
+              toast.message = "The file has been downloaded";
+              await open(DOWNLOADS_DIR);
             }}
           />
         </ActionPanel>
