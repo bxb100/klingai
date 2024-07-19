@@ -5,6 +5,7 @@ import { z } from "zod";
 import { Action, ActionPanel, Grid } from "@raycast/api";
 import HistoryDetail from "./HistoryDetail";
 import { showFailureToast } from "@raycast/utils";
+import { imageURLPreviewArguments } from "../util";
 
 export default function TaskGenPage({ id, cookie }: { id: number; cookie: string }) {
   const [loading, setLoading] = useState(true);
@@ -37,7 +38,7 @@ export default function TaskGenPage({ id, cookie }: { id: number; cookie: string
                 </ActionPanel>
               }
               content={{
-                source: work.resource.resource + "?x-oss-process=image/resize%2Cw_376%2Ch_376%2Cm_mfit",
+                source: work.resource.resource + imageURLPreviewArguments,
                 fallback: "fail.png",
               }}
               key={work.workItemId}

@@ -1,7 +1,7 @@
 {
     "$schema": "https://www.raycast.com/schemas/extension.json",
     "name": "klingai",
-    "title": "klingai",
+    "title": "Klingai",
     "description": "可灵 AI - 新一代 AI 创意生产力工具",
     "icon": "kling-logo.png",
     "author": "Lemon",

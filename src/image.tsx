@@ -8,7 +8,7 @@ import path from "node:path";
 import { upload } from "./api/upload";
 import { argumentSchema, taskInputSchema } from "./types";
 import TaskGenPage from "./component/TaskGenPage";
-import { styles } from "./util";
+import { imageURLPreviewArguments, styles } from "./util";
 
 type FormValues = {
   prompt: string;
@@ -163,16 +163,22 @@ export default function Command() {
       {usingInput === 1 && <Form.FilePicker title={""} allowMultipleSelection={false} {...itemProps.filePath} />}
       {usingInput === 2 && (
         <Form.Dropdown isLoading={isLoading} {...itemProps.urlPath}>
-          {data
-            .flatMap((item) => item.works)
-            .map((work) => (
-              <Form.Dropdown.Item
-                key={work.workId}
-                value={work.resource.resource}
-                icon={work.resource.resource}
-                title={work.taskInfo.arguments[0].value}
-              />
-            ))}
+          {data.map((task) => {
+            return (
+              <Form.Dropdown.Section key={task.task.id}>
+                {task.works
+                  .filter((work) => work.resource.resource)
+                  .map((work) => (
+                    <Form.Dropdown.Item
+                      key={work.workId}
+                      value={work.resource.resource}
+                      icon={work.resource.resource + imageURLPreviewArguments}
+                      title={task.task.taskInfo.arguments[0].value}
+                    />
+                  ))}
+              </Form.Dropdown.Section>
+            );
+          })}
         </Form.Dropdown>
       )}
       {usingInput > 0 && <Form.TextField title={"参考强度"} info={"数值越大参考强度越大"} {...itemProps.fidelity} />}

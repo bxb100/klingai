@@ -119,3 +119,5 @@ export function isTaskStatusProcessing(e: number) {
 export function isTaskStatusFailed(e: number) {
   return !isTaskNotExist(e) && !isTaskStatusSuccess(e) && !isTaskStatusProcessing(e);
 }
+
+export const imageURLPreviewArguments = "?x-oss-process=image/resize%2Cw_376%2Ch_376%2Cm_mfit";
