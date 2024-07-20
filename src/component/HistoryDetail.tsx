@@ -1,12 +1,12 @@
 import { z } from "zod";
 import { workSchema } from "../types";
 import { homedir } from "node:os";
-import { Action, ActionPanel, Detail, Icon, open, showToast, Toast } from "@raycast/api";
+import { Action, ActionPanel, Color, Detail, Icon, open, showToast, Toast } from "@raycast/api";
 import fs from "node:fs";
 import fetch from "node-fetch";
-import Style = Toast.Style;
 import { useEffect, useState } from "react";
 import { lN } from "../util";
+import Style = Toast.Style;
 
 export default function HistoryDetail({ work }: { work: z.infer<typeof workSchema> }) {
   const DOWNLOADS_DIR = `${homedir()}/Downloads`;
@@ -51,6 +51,14 @@ export default function HistoryDetail({ work }: { work: z.infer<typeof workSchem
       }
       metadata={
         <Detail.Metadata>
+          {work.status != lN.COMPLETED && (
+            <Detail.Metadata.Label
+              title={"任务状态"}
+              text={Object.keys(lN)[Object.values(lN).indexOf(work.status)] ?? "未知"}
+              icon={{ source: Icon.Warning, tintColor: Color.Red }}
+            />
+          )}
+
           {work.taskInfo.arguments.map((argument) => {
             let title = "";
             switch (argument.name) {
