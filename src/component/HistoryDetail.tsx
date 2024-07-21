@@ -5,7 +5,7 @@ import { Action, ActionPanel, Color, Detail, Icon, open, showToast, Toast } from
 import fs from "node:fs";
 import fetch from "node-fetch";
 import { useEffect, useState } from "react";
-import { lN } from "../util";
+import { isTaskStatusFailed, lN } from "../util";
 import Style = Toast.Style;
 
 export default function HistoryDetail({ work }: { work: z.infer<typeof workSchema> }) {
@@ -13,7 +13,7 @@ export default function HistoryDetail({ work }: { work: z.infer<typeof workSchem
   const [imageMd, setImageMd] = useState("");
 
   useEffect(() => {
-    if (work.status === lN.SENSITIVE_RESULT) {
+    if (isTaskStatusFailed(work.status)) {
       setImageMd(`![temp](fail.png?raycast-height=350)`);
     } else {
       setImageMd(`![temp](${work.resource.resource}?raycast-height=350)`);
@@ -47,11 +47,12 @@ export default function HistoryDetail({ work }: { work: z.infer<typeof workSchem
               await open(DOWNLOADS_DIR);
             }}
           />
+          <Action.Open title={"Open in Browser"} target={work.resource.resource} icon={Icon.Compass} />
         </ActionPanel>
       }
       metadata={
         <Detail.Metadata>
-          {work.status != lN.COMPLETED && (
+          {isTaskStatusFailed(work.status) && (
             <Detail.Metadata.Label
               title={"任务状态"}
               text={Object.keys(lN)[Object.values(lN).indexOf(work.status)] ?? "未知"}

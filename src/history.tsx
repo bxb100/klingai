@@ -67,7 +67,7 @@ export default function Command() {
                 <Grid.Item
                   actions={
                     <ActionPanel>
-                      <Action.Push title={"Detail"} target={<HistoryDetail work={work} />} />
+                      <Action.Push title={"Detail"} target={<HistoryDetail work={work} />} icon={Icon.Bird} />
                       <Action
                         icon={Icon.Trash}
                         style={Action.Style.Destructive}

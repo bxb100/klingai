@@ -5,7 +5,7 @@ import { z } from "zod";
 import { Action, ActionPanel, Grid } from "@raycast/api";
 import HistoryDetail from "./HistoryDetail";
 import { showFailureToast } from "@raycast/utils";
-import { imageURLPreviewArguments } from "../util";
+import { imageURLPreviewArguments, isTaskStatusFailed } from "../util";
 
 export default function TaskGenPage({ id, cookie }: { id: number; cookie: string }) {
   const [loading, setLoading] = useState(true);
@@ -14,6 +14,11 @@ export default function TaskGenPage({ id, cookie }: { id: number; cookie: string
   useEffect(() => {
     console.log("fetching data", id, cookie);
     const subscription = checkStatusUntilDone(String(id), cookie, setData).subscribe({
+      next: (v) => {
+        if (isTaskStatusFailed(v.data.status)) {
+          showFailureToast(new Error(v.message + v.data.status), { title: "Can't generate image" });
+        }
+      },
       error: (err) => {
         showFailureToast(err, { title: "Failed to fetch data" });
       },
@@ -38,8 +43,9 @@ export default function TaskGenPage({ id, cookie }: { id: number; cookie: string
                 </ActionPanel>
               }
               content={{
-                source: work.resource.resource + imageURLPreviewArguments,
-                fallback: "fail.png",
+                source: isTaskStatusFailed(work.status)
+                  ? "fail.png"
+                  : work.resource.resource + imageURLPreviewArguments,
               }}
               key={work.workItemId}
             />
