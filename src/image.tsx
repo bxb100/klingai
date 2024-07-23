@@ -63,7 +63,7 @@ export default function Command() {
       let type: z.infer<typeof Type> = "mmu_txt2img_aiweb";
       if (url) {
         type = "mmu_img2img_aiweb";
-        args.push({ name: "fidelity", value: values.fidelity! });
+        args.push({ name: "fidelity", value: values.fidelity!.trim() });
         inputs.push({ name: "input", inputType: "URL", url: url });
       }
       const toast = await showToast(Toast.Style.Animated, "正在生成图片", "请稍等片刻");
@@ -199,7 +199,11 @@ export default function Command() {
         <Form.Dropdown.Item title={"3:4"} value={"3:4"} />
         <Form.Dropdown.Item title={"9:16"} value={"9:16"} />
       </Form.Dropdown>
-      <Form.TextField title={"生成数量"} {...itemProps.imageCount} />
+      <Form.Dropdown title={"生成数量"} {...itemProps.imageCount}>
+        {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((value) => (
+          <Form.Dropdown.Item title={value.toString()} value={value.toString()} key={value} />
+        ))}
+      </Form.Dropdown>
     </Form>
   );
 }
