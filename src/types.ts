@@ -151,3 +151,26 @@ export const deleteWorksSchema = z.object({
     })
     .array(),
 });
+
+export const pointGotHistorySchema = z.object({
+  orderId: z.string(),
+  type: z.enum(["reward"]),
+  amount: z.number(),
+  balance: z.number(),
+  startTime: z.number({ description: "timestamp" }),
+  endTime: z.number({ description: "timestamp" }),
+});
+
+export const pointResSchema = _resDataSchema(
+  z.object({
+    total: z.number(),
+    points: pointGotHistorySchema.array(),
+  }),
+);
+
+export const payRewardResSchema = _resDataSchema(
+  z.object({
+    order: z.string().nullable(),
+    status: z.enum(["GRANTED"]),
+  }),
+);

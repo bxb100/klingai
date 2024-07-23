@@ -8,7 +8,7 @@ const submitAPI = "https://klingai.kuaishou.com/api/task/submit";
 const statusAPI = "https://klingai.kuaishou.com/api/task/status";
 
 export async function submit(task: z.infer<typeof taskSubmitSchema>, cookie: string) {
-  console.debug("submit", task);
+  console.debug("submit", JSON.stringify(task));
   const res = await fetch(submitAPI, {
     method: "POST",
     headers: {
@@ -37,6 +37,7 @@ export function checkStatusUntilDone(
   callback: (v: z.infer<typeof taskStatusResSchema>) => void,
 ) {
   return defer(() => status(taskId, cookie)).pipe(
+    tap(console.debug),
     tap((res) => callback(res)),
     map((res) => {
       if (isTaskStatusProcessing(res.data.status)) {

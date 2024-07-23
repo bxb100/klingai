@@ -1,7 +1,7 @@
 import { Action, ActionPanel, Form, getPreferenceValues, showToast, Toast, useNavigation } from "@raycast/api";
 import { FormValidation, useForm } from "@raycast/utils";
 import { submit } from "./api/task";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { userWorksPersonalV2 } from "./api/history";
 import { z } from "zod";
 import path from "node:path";
@@ -9,6 +9,7 @@ import { upload } from "./api/upload";
 import { argumentSchema, taskInputSchema, Type } from "./types";
 import TaskGenPage from "./component/TaskGenPage";
 import { imageURLPreviewArguments, styles } from "./util";
+import { dailyReward } from "./api/point";
 
 type FormValues = {
   prompt: string;
@@ -140,6 +141,10 @@ export default function Command() {
     }
   }
 
+  useEffect(() => {
+    // get daily free point
+    dailyReward(cookie);
+  }, []);
   return (
     <Form
       actions={
@@ -147,7 +152,7 @@ export default function Command() {
           <Action.SubmitForm title="立即生成" onSubmit={handleSubmit} />
         </ActionPanel>
       }
-      searchBarAccessory={<Form.LinkAccessory target="https://klingai.kuaishou.com/text-to-image/new" text="可灵 AI" />}
+      searchBarAccessory={<Form.LinkAccessory target="https://klingai.kuaishou.com/text-to-image/new" text="AI 图片" />}
     >
       <Form.TextArea title={"创意描述"} {...itemProps.prompt} />
       <Form.Checkbox

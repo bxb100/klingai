@@ -14,9 +14,15 @@ export default function TaskGenPage({ id, cookie }: { id: number; cookie: string
   useEffect(() => {
     const subscription = checkStatusUntilDone(String(id), cookie, setData).subscribe({
       next: (v) => {
+        if (v.status != 200) {
+          showFailureToast(new Error(v.message), { title: "Failed to fetch data" });
+          return;
+        }
         if (isTaskStatusFailed(v.data.status)) {
           showFailureToast(new Error(v.message + v.data.status), { title: "Can't generate image" });
+          return;
         }
+        setData(v);
       },
       error: (err) => {
         showFailureToast(err, { title: "Failed to fetch data" });
@@ -32,7 +38,7 @@ export default function TaskGenPage({ id, cookie }: { id: number; cookie: string
 
   return (
     <Grid isLoading={loading}>
-      {data && (
+      {data?.data && (
         <Grid.Section title={data.data.task.taskInfo.arguments[0].value}>
           {data.data.works.map((work) => (
             <Grid.Item
