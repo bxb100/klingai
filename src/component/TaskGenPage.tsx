@@ -12,7 +12,6 @@ export default function TaskGenPage({ id, cookie }: { id: number; cookie: string
   const [data, setData] = useState<z.infer<typeof taskStatusResSchema>>();
 
   useEffect(() => {
-    console.log("fetching data", id, cookie);
     const subscription = checkStatusUntilDone(String(id), cookie, setData).subscribe({
       next: (v) => {
         if (isTaskStatusFailed(v.data.status)) {

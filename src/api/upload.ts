@@ -8,8 +8,9 @@ import {
 } from "../types";
 import { z } from "zod";
 import path from "node:path";
-import { concatMap, defer, delay, firstValueFrom, map, retry, tap } from "rxjs";
+import { concatMap, defer, firstValueFrom, map, retry, tap } from "rxjs";
 import * as fs from "node:fs";
+import { Toast } from "@raycast/api";
 
 const uploadIssueTokenAPI = "https://klingai.kuaishou.com/api/upload/issue/token";
 const uploadVerifyAPI = "https://klingai.kuaishou.com/api/upload/verify/token";
@@ -64,7 +65,7 @@ type UploadState = {
   token: string;
 };
 
-export function upload(filepath: string, cookie: string): Promise<string> {
+export function upload(filepath: string, cookie: string, toast: Toast): Promise<string> {
   const filename = path.parse(filepath).base;
 
   const resume$ = (state: UploadState) =>
@@ -81,7 +82,10 @@ export function upload(filepath: string, cookie: string): Promise<string> {
 
   const fragment$ = (state: UploadState) =>
     defer(() => uploadFragment(state.endpoint, state.token, fs.readFileSync(filepath))).pipe(
-      tap(console.debug),
+      tap((v) => {
+        console.debug(v);
+        toast.title = "Uploading fragment";
+      }),
       map((res) => {
         if (res.result === 1) {
           return state;
@@ -93,7 +97,10 @@ export function upload(filepath: string, cookie: string): Promise<string> {
 
   const complete$ = (state: UploadState) =>
     defer(() => uploadComplete(state.endpoint, state.token)).pipe(
-      tap(console.debug),
+      tap((v) => {
+        console.debug(v);
+        toast.title = "Uploading complete";
+      }),
       map((res) => {
         if (res.result === 1) {
           return state;
@@ -101,8 +108,10 @@ export function upload(filepath: string, cookie: string): Promise<string> {
           throw new Error("Failed to complete upload");
         }
       }),
-      delay(3000),
-      retry(1),
+      retry({
+        count: 1,
+        delay: 3000,
+      }),
     );
 
   const verify$ = (state: UploadState) =>
@@ -114,25 +123,30 @@ export function upload(filepath: string, cookie: string): Promise<string> {
           throw new Error(`Failed to verify upload: ${JSON.stringify(res)}`);
         }
       }),
-      delay(1000),
-      retry(1),
-      tap({ error: (err) => console.error(`error: ${err}, input: ${JSON.stringify(state)}`) }),
+      retry({
+        count: 1,
+        delay: 3000,
+      }),
+      tap({
+        error: (err) => console.error(`error: ${err}, input: ${JSON.stringify(state)}`),
+      }),
     );
 
   return firstValueFrom(
-    defer(() => uploadIssueToken(filename, cookie))
-      .pipe(
-        tap(console.log),
-        concatMap((res) =>
-          resume$({
-            endpoint: res.data.httpEndpoints[0],
-            token: res.data.token,
-          }),
-        ),
-        concatMap(fragment$),
-        concatMap(complete$),
-        concatMap(verify$),
-      )
-      .pipe(tap((url) => console.debug("Uploaded to: " + url))),
+    defer(() => uploadIssueToken(filename, cookie)).pipe(
+      tap((v) => {
+        console.debug(v);
+        toast.title = "Requesting token";
+      }),
+      concatMap((res) =>
+        resume$({
+          endpoint: res.data.httpEndpoints[0],
+          token: res.data.token,
+        }),
+      ),
+      concatMap(fragment$),
+      concatMap(complete$),
+      concatMap(verify$),
+    ),
   );
 }

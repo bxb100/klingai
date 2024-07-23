@@ -1,6 +1,6 @@
 import { deleteWorksSchema, nullResSchema, taskStatusResSchema, taskSubmitResSchema, taskSubmitSchema } from "../types";
 import { z } from "zod";
-import { defer, delay, map, retry, tap, timer } from "rxjs";
+import { defer, map, retry, tap } from "rxjs";
 import fetch from "node-fetch";
 import { isTaskStatusProcessing } from "../util";
 
@@ -8,6 +8,7 @@ const submitAPI = "https://klingai.kuaishou.com/api/task/submit";
 const statusAPI = "https://klingai.kuaishou.com/api/task/status";
 
 export async function submit(task: z.infer<typeof taskSubmitSchema>, cookie: string) {
+  console.debug("submit", task);
   const res = await fetch(submitAPI, {
     method: "POST",
     headers: {
@@ -43,10 +44,8 @@ export function checkStatusUntilDone(
       }
       return res;
     }),
-    delay(500),
     retry({
-      count: 10,
-      delay: (_e, b) => timer((2 ^ b) * 300),
+      delay: 1000,
     }),
   );
 }

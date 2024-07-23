@@ -1,11 +1,11 @@
 import { z, ZodTypeAny } from "zod";
 
-const type = z.enum(["mmu_txt2img_aiweb", "m2v_txt2video_hq", "m2v_img2video_hq"]);
+export const Type = z.enum(["mmu_txt2img_aiweb", "mmu_img2img_aiweb", "m2v_txt2video_hq", "m2v_img2video_hq"]);
 const argumentType = z.enum(["prompt", "style", "aspect_ratio", "imageCount", "fidelity", "biz"]);
 const contentType = z.enum(["image", "video"]);
 
 export const limitationSchema = z.object({
-  type,
+  type: Type,
   remaining: z.number(),
   limit: z.number(),
 });
@@ -29,7 +29,7 @@ export const taskInputSchema = z.object({
 });
 
 export const taskInfoSchema = z.object({
-  type,
+  type: Type,
   inputs: taskInputSchema.array(),
   arguments: argumentSchema.array(),
 });
@@ -38,7 +38,7 @@ export const workSchema = z.object({
   workId: z.number(),
   workItemId: z.number(),
   taskId: z.number(),
-  type: type,
+  type: Type,
   status: z.number(),
   contentType,
   resource: resourceSchema,
@@ -58,7 +58,7 @@ export const workSchema = z.object({
 export const taskSchema = z.object({
   id: z.number(),
   userId: z.number(),
-  type,
+  type: Type,
   status: z.number(),
   taskInfo: taskInfoSchema,
   favored: z.boolean().default(false),
@@ -90,7 +90,7 @@ export const worksResSchema = _resDataSchema(
 
 export const taskSubmitSchema = z.object({
   arguments: argumentSchema.array(),
-  type,
+  type: Type,
   inputs: taskInputSchema.array(),
 });
 

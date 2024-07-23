@@ -6,7 +6,7 @@ import { userWorksPersonalV2 } from "./api/history";
 import { z } from "zod";
 import path from "node:path";
 import { upload } from "./api/upload";
-import { argumentSchema, taskInputSchema } from "./types";
+import { argumentSchema, taskInputSchema, Type } from "./types";
 import TaskGenPage from "./component/TaskGenPage";
 import { imageURLPreviewArguments, styles } from "./util";
 
@@ -36,9 +36,7 @@ export default function Command() {
           title: "正在上传图片",
         });
         try {
-          url = await upload(values.filePath[0], cookie);
-          toast.style = Toast.Style.Success;
-          toast.title = "图片上传成功";
+          url = await upload(values.filePath[0], cookie, toast);
         } catch (e) {
           toast.style = Toast.Style.Failure;
           toast.title = "图片上传失败, 请重试";
@@ -62,7 +60,9 @@ export default function Command() {
         { name: "biz", value: "klingai" },
       ];
       const inputs: z.infer<typeof taskInputSchema>[] = [];
+      let type: z.infer<typeof Type> = "mmu_txt2img_aiweb";
       if (url) {
+        type = "mmu_img2img_aiweb";
         args.push({ name: "fidelity", value: values.fidelity! });
         inputs.push({ name: "input", inputType: "URL", url: url });
       }
@@ -71,7 +71,7 @@ export default function Command() {
       const res = await submit(
         {
           arguments: args,
-          type: "mmu_txt2img_aiweb",
+          type,
           inputs,
         },
         cookie,
