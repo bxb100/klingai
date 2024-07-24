@@ -24,7 +24,7 @@ type FormValues = {
 
 export default function Command() {
   const { cookie } = getPreferenceValues<Preferences>();
-  const { isLoading, data } = userWorksPersonalV2(cookie);
+  const { isLoading, data } = userWorksPersonalV2(cookie, "image", "false");
 
   const { push } = useNavigation();
 

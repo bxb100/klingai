@@ -1,7 +1,28 @@
 import { z, ZodTypeAny } from "zod";
 
-export const Type = z.enum(["mmu_txt2img_aiweb", "mmu_img2img_aiweb", "m2v_txt2video_hq", "m2v_img2video_hq"]);
-const argumentType = z.enum(["prompt", "style", "aspect_ratio", "imageCount", "fidelity", "biz"]);
+export const Type = z.enum([
+  "mmu_txt2img_aiweb",
+  "mmu_img2img_aiweb",
+  // fast
+  "m2v_txt2video",
+  "m2v_txt2video_hq",
+  // fast
+  "m2v_img2video",
+  "m2v_img2video_hq",
+]);
+const argumentType = z.enum([
+  "prompt",
+  "style",
+  "aspect_ratio",
+  "imageCount",
+  "fidelity",
+  "biz",
+  "negative_prompt",
+  "cfg",
+  "duration",
+  "camera_json",
+  "tail_image_enabled",
+]);
 const contentType = z.enum(["image", "video"]);
 
 export const limitationSchema = z.object({

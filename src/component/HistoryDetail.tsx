@@ -16,7 +16,8 @@ export default function HistoryDetail({ work }: { work: z.infer<typeof workSchem
     if (isTaskStatusFailed(work.status)) {
       setImageMd(`![temp](fail.png?raycast-height=350)`);
     } else {
-      setImageMd(`![temp](${work.resource.resource}?raycast-height=350)`);
+      const url = work.contentType === "video" ? work.cover.resource : work.resource.resource;
+      setImageMd(`![temp](${url}?raycast-height=350)`);
     }
   }, [work]);
 
@@ -30,7 +31,8 @@ export default function HistoryDetail({ work }: { work: z.infer<typeof workSchem
             title={"Download"}
             onAction={async () => {
               const toast = await showToast(Style.Animated, "Downloading...", "Please wait");
-              const dest = `${DOWNLOADS_DIR}/${work.workId}.png`;
+              const ext = work.contentType === "video" ? "mp4" : "png";
+              const dest = `${DOWNLOADS_DIR}/${work.workId}.${ext}`;
               if (!fs.existsSync(dest)) {
                 await fetch(work.resource.resource).then(async (res) => {
                   const fileStream = fs.createWriteStream(dest);
@@ -77,6 +79,15 @@ export default function HistoryDetail({ work }: { work: z.infer<typeof workSchem
                 break;
               case "fidelity":
                 title = "参考强度";
+                break;
+              case "negative_prompt":
+                title = "不希望呈现的内容";
+                break;
+              case "cfg":
+                title = "创意强度";
+                break;
+              case "duration":
+                title = "视频时长(s)";
                 break;
               default:
                 return null;
