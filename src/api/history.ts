@@ -12,7 +12,7 @@ export function userWorksPersonalV2(cookie: string, contentType: string, favored
     req.append("pageNum", String(page));
     req.append("pageSize", String(pageSize));
     req.append("contentType", contentType);
-    req.append("statusType", "success");
+    req.append("statusType", "");
     req.append("favored", favored);
     return req;
   };

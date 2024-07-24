@@ -35,6 +35,7 @@ export function checkStatusUntilDone(
   taskId: string,
   cookie: string,
   callback: (v: z.infer<typeof taskStatusResSchema>) => void,
+  retryDelay?: number,
 ) {
   return defer(() => status(taskId, cookie)).pipe(
     tap(console.debug),
@@ -46,7 +47,7 @@ export function checkStatusUntilDone(
       return res;
     }),
     retry({
-      delay: 1000,
+      delay: retryDelay ?? 1000,
     }),
   );
 }

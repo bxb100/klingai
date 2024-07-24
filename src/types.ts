@@ -22,6 +22,7 @@ const argumentType = z.enum([
   "duration",
   "camera_json",
   "tail_image_enabled",
+  "tail_image_enabled",
 ]);
 const contentType = z.enum(["image", "video"]);
 
@@ -47,6 +48,7 @@ export const taskInputSchema = z.object({
   inputType: z.enum(["URL"]).default("URL"),
   url: z.string(),
   name: z.enum(["input"]).default("input"),
+  fromWorkId: z.number().optional(),
 });
 
 export const taskInfoSchema = z.object({

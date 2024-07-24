@@ -102,7 +102,20 @@ export const lN = {
       },
       image: "https://ali2.a.kwimgs.com/kos/nlav10378/aiwp/assets/style-monet-D7oeBcPg.png",
     },
-  });
+  }),
+  gF = {
+    empty: "empty",
+    "down-back": "down_back",
+    "forward-up": "forward_up",
+    "right-turn-forward": "right_turn_forward",
+    "left-turn-forward": "left_turn_forward",
+    "translate-x": "horizontal",
+    "translate-y": "vertical",
+    "translate-z": "zoom",
+    "rotate-x": "tilt",
+    "rotate-y": "pan",
+    "rotate-z": "roll",
+  };
 
 export function isTaskNotExist(e: number) {
   return [lN.NOT_EXIST].includes(e);

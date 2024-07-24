@@ -11,6 +11,7 @@ import Style = Toast.Style;
 export default function HistoryDetail({ work }: { work: z.infer<typeof workSchema> }) {
   const DOWNLOADS_DIR = `${homedir()}/Downloads`;
   const [imageMd, setImageMd] = useState("");
+  const isVideo = work.type.indexOf("2video") !== -1;
 
   useEffect(() => {
     if (isTaskStatusFailed(work.status)) {
@@ -62,14 +63,19 @@ export default function HistoryDetail({ work }: { work: z.infer<typeof workSchem
             />
           )}
 
+          {isVideo && <Detail.Metadata.Link title={"播放"} text={"在浏览器中打开"} target={work.resource.resource} />}
+
           {work.taskInfo.arguments.map((argument) => {
+            if (!argument.value) {
+              return null;
+            }
             let title = "";
             switch (argument.name) {
               case "prompt":
                 title = "创意描述";
                 break;
               case "aspect_ratio":
-                title = "图片比例";
+                title = isVideo ? "视频比例" : "图片比例";
                 break;
               case "imageCount":
                 title = "图片数量";

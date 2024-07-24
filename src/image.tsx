@@ -1,15 +1,15 @@
-import { Action, ActionPanel, Form, getPreferenceValues, showToast, Toast, useNavigation } from "@raycast/api";
+import { Action, ActionPanel, Form, getPreferenceValues, Icon, showToast, Toast, useNavigation } from "@raycast/api";
 import { FormValidation, useForm } from "@raycast/utils";
 import { submit } from "./api/task";
-import { useEffect, useState } from "react";
-import { userWorksPersonalV2 } from "./api/history";
+import { useEffect } from "react";
 import { z } from "zod";
 import path from "node:path";
 import { upload } from "./api/upload";
-import { argumentSchema, taskInputSchema, Type } from "./types";
+import { argumentSchema, taskInputSchema, Type, workSchema } from "./types";
 import TaskGenPage from "./component/TaskGenPage";
-import { imageURLPreviewArguments, styles } from "./util";
+import { styles } from "./util";
 import { dailyReward } from "./api/point";
+import { FormInputContext, FormInput } from "./component/FormInput";
 
 type FormValues = {
   prompt: string;
@@ -19,19 +19,19 @@ type FormValues = {
   fidelity?: string;
   biz: string;
   filePath?: string[];
-  urlPath?: string;
+  fromWork?: string;
 };
 
 export default function Command() {
   const { cookie } = getPreferenceValues<Preferences>();
-  const { isLoading, data } = userWorksPersonalV2(cookie, "image", "false");
 
   const { push } = useNavigation();
 
   const { handleSubmit, itemProps, setValue } = useForm<FormValues>({
     onSubmit: async (values) => {
       let url = "";
-      if (usingInput === 1 && values.filePath && values.filePath.length > 0) {
+      let fromWorkId = undefined;
+      if (values.filePath && values.filePath.length > 0) {
         const toast = await showToast({
           style: Toast.Style.Animated,
           title: "正在上传图片",
@@ -44,8 +44,10 @@ export default function Command() {
           toast.message = e instanceof Error ? e.message : "未知错误";
           return;
         }
-      } else if (usingInput === 2 && values.urlPath) {
-        url = values.urlPath;
+      } else if (values.fromWork && values.fromWork.length > 0) {
+        const data = JSON.parse(values.fromWork) as z.infer<typeof workSchema>;
+        url = data.resource.resource;
+        fromWorkId = data.workId;
       }
       const args: z.infer<typeof argumentSchema>[] = [
         { name: "prompt", value: values.prompt },
@@ -65,7 +67,7 @@ export default function Command() {
       if (url) {
         type = "mmu_img2img_aiweb";
         args.push({ name: "fidelity", value: values.fidelity!.trim() });
-        inputs.push({ name: "input", inputType: "URL", url: url });
+        inputs.push({ name: "input", inputType: "URL", url: url, fromWorkId });
       }
       const toast = await showToast(Toast.Style.Animated, "正在生成图片", "请稍等片刻");
 
@@ -91,22 +93,18 @@ export default function Command() {
       fidelity: "0.25",
       style: "默认",
       filePath: undefined,
-      urlPath: undefined,
+      fromWork: undefined,
     },
     validation: {
-      prompt: FormValidation.Required,
-      aspect_ratio: FormValidation.Required,
-      imageCount: (value) => {
+      prompt: (value) => {
         if (!value) {
-          return "The item is required";
+          return "Required";
         }
-        if (isNaN(Number(value))) {
-          return "The item must be a number";
-        }
-        if (Number(value) < 1 || Number(value) > 9) {
-          return "The item must be between 1 and 9";
+        if (value.length > 500) {
+          return "The item must be less than 500 characters";
         }
       },
+      aspect_ratio: FormValidation.Required,
       fidelity: (value) => {
         if (value === undefined) {
           return undefined;
@@ -121,72 +119,33 @@ export default function Command() {
       filePath: (value) => {
         if (value) {
           const ext = path.parse(value[0]).ext;
-          if (ext !== ".jpg" && ext !== ".jpeg" && ext !== ".png") {
-            return "The file must be a jpg, jpeg or png";
+          if (ext !== ".jpg" && ext !== ".png") {
+            return "The file must be a jpg or png";
           }
         }
       },
     },
   });
 
-  const [usingInput, setUsingInput] = useState(0);
-
-  function toggleIn(v: number, b: boolean) {
-    if (b) {
-      setUsingInput(v);
-    } else {
-      setUsingInput(0);
-      setValue("filePath", undefined);
-      setValue("urlPath", undefined);
-    }
-  }
-
   useEffect(() => {
     // get daily free point
     dailyReward(cookie);
   }, []);
+
   return (
     <Form
       actions={
         <ActionPanel>
-          <Action.SubmitForm title="立即生成" onSubmit={handleSubmit} />
+          <Action.SubmitForm title="立即生成" onSubmit={handleSubmit} icon={Icon.Image} />
         </ActionPanel>
       }
       searchBarAccessory={<Form.LinkAccessory target="https://klingai.kuaishou.com/text-to-image/new" text="AI 图片" />}
     >
       <Form.TextArea title={"创意描述"} {...itemProps.prompt} />
-      <Form.Checkbox
-        id="in0"
-        value={usingInput === 1}
-        onChange={(v) => toggleIn(1, v)}
-        title={"参考图/垫图"}
-        label={"本地上传"}
-        info={"参考上传图像的风格主题, 生成符合文本描述的作品"}
-      />
-      <Form.Checkbox id="in1" label={"历史作品"} value={usingInput === 2} onChange={(v) => toggleIn(2, v)} />
 
-      {usingInput === 1 && <Form.FilePicker title={""} allowMultipleSelection={false} {...itemProps.filePath} />}
-      {usingInput === 2 && (
-        <Form.Dropdown isLoading={isLoading} {...itemProps.urlPath}>
-          {data.map((task) => {
-            return (
-              <Form.Dropdown.Section key={task.task.id}>
-                {task.works
-                  .filter((work) => work.resource.resource)
-                  .map((work) => (
-                    <Form.Dropdown.Item
-                      key={work.workId}
-                      value={work.resource.resource}
-                      icon={work.resource.resource + imageURLPreviewArguments}
-                      title={task.task.taskInfo.arguments[0].value}
-                    />
-                  ))}
-              </Form.Dropdown.Section>
-            );
-          })}
-        </Form.Dropdown>
-      )}
-      {usingInput > 0 && <Form.TextField title={"参考强度"} info={"数值越大参考强度越大"} {...itemProps.fidelity} />}
+      <FormInputContext.Provider value={{ cookie, contentType: "image" }}>
+        <FormInput itemProps={itemProps} setValue={setValue} />
+      </FormInputContext.Provider>
 
       <Form.Separator />
       <Form.Dropdown title={"风格"} {...itemProps.style}>

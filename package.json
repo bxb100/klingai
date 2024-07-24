@@ -16,7 +16,13 @@
         {
             "name": "image",
             "title": "Create Image",
-            "description": "Create an image in Kling",
+            "description": "Create images in Kling",
+            "mode": "view"
+        },
+        {
+            "name": "video",
+            "title": "Create Video",
+            "description": "Create videos in Kling",
             "mode": "view"
         }
     ],
