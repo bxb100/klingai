@@ -24,7 +24,7 @@ const argumentType = z.enum([
   "tail_image_enabled",
   "tail_image_enabled",
 ]);
-const contentType = z.enum(["image", "video"]);
+const contentType = z.enum(["image", "video", "unknown"]);
 
 export const limitationSchema = z.object({
   type: Type,

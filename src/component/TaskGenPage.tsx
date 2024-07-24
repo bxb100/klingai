@@ -50,7 +50,9 @@ export default function TaskGenPage({ id, cookie, retryDelay }: { id: number; co
               content={{
                 source: isTaskStatusFailed(work.status)
                   ? "fail.png"
-                  : work.resource.resource + imageURLPreviewArguments,
+                  : (work.contentType === "video" ? work.cover.resource : work.resource.resource) +
+                    imageURLPreviewArguments,
+                fallback: work.type.indexOf("2video") != -1 ? "video-loading.png" : undefined,
               }}
               key={work.workItemId}
             />

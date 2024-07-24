@@ -4,7 +4,7 @@ import { showFailureToast } from "@raycast/utils";
 import HistoryDetail from "./component/HistoryDetail";
 import { deleteWorks } from "./api/task";
 import { useEffect, useState } from "react";
-import { imageURLPreviewArguments } from "./util";
+import { imageURLPreviewArguments, isTaskStatusProcessing } from "./util";
 import { point } from "./api/point";
 import Shortcut = Keyboard.Shortcut;
 
@@ -93,7 +93,10 @@ export default function Command() {
                     source:
                       (work.contentType === "video" ? work.cover.resource : work.resource.resource) +
                       imageURLPreviewArguments,
-                    fallback: "fail.png",
+                    fallback:
+                      isTaskStatusProcessing(work.status) && work.type.indexOf("2video") !== -1
+                        ? "video-loading.png"
+                        : "fail.png",
                   }}
                   key={work.workId}
                 />
