@@ -1,5 +1,5 @@
 import { Action, ActionPanel, Form, getPreferenceValues, Icon, showToast, Toast, useNavigation } from "@raycast/api";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FormValidation, showFailureToast, useForm } from "@raycast/utils";
 import { FormInput, FormInputContext } from "./component/FormInput";
 import { z } from "zod";
@@ -7,6 +7,7 @@ import { argumentSchema, taskInputSchema, Type, workSchema } from "./types";
 import { upload } from "./api/upload";
 import { submit } from "./api/task";
 import TaskGenPage from "./component/TaskGenPage";
+import { dailyReward } from "./api/point";
 
 type FormValues = {
   prompt: string;
@@ -147,6 +148,11 @@ export default function Command() {
       },
     },
   });
+
+  useEffect(() => {
+    // get daily free point
+    dailyReward(cookie);
+  }, []);
 
   return (
     <Form
