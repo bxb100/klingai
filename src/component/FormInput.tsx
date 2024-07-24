@@ -1,7 +1,10 @@
-import { Form } from "@raycast/api";
+import { Form, showToast, Toast } from "@raycast/api";
 import { imageURLPreviewArguments } from "../util";
 import { createContext, SetStateAction, useContext, useMemo, useState } from "react";
 import { userWorksPersonalV2 } from "../api/history";
+import { z } from "zod";
+import { workSchema } from "../types";
+import { upload } from "../api/upload";
 
 type K = "filePath" | "fromWork" | "fidelity";
 type T = {
@@ -23,6 +26,30 @@ export const FormInputContext = createContext({
   cookie: "",
   contentType: "image",
 });
+
+export async function submitUpload(values: Form.Values, cookie: string) {
+  let url;
+  let fromWorkId;
+  if (values.filePath && values.filePath.length > 0) {
+    const toast = await showToast({
+      style: Toast.Style.Animated,
+      title: "正在上传图片",
+    });
+    try {
+      url = await upload(values.filePath[0], cookie, toast);
+    } catch (e) {
+      toast.style = Toast.Style.Failure;
+      toast.title = "图片上传失败, 请重试";
+      toast.message = e instanceof Error ? e.message : "未知错误";
+      return { url: undefined, fromWorkId: undefined };
+    }
+  } else if (values.fromWork && values.fromWork.length > 0) {
+    const data = JSON.parse(values.fromWork) as z.infer<typeof workSchema>;
+    url = data.resource.resource;
+    fromWorkId = data.workId;
+  }
+  return { url, fromWorkId };
+}
 
 export function FormInput(props: Props) {
   const { itemProps, setValue } = props;

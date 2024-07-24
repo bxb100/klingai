@@ -1,4 +1,5 @@
 // all copy from klingai.kuishou.com
+
 export const lN = {
     UNKNOWN: 0,
     NOT_EXIST: 4,

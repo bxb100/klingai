@@ -1,10 +1,9 @@
 import { Action, ActionPanel, Form, getPreferenceValues, Icon, showToast, Toast, useNavigation } from "@raycast/api";
 import { useEffect, useState } from "react";
 import { FormValidation, showFailureToast, useForm } from "@raycast/utils";
-import { FormInput, FormInputContext } from "./component/FormInput";
+import { FormInput, FormInputContext, submitUpload } from "./component/FormInput";
 import { z } from "zod";
-import { argumentSchema, taskInputSchema, Type, workSchema } from "./types";
-import { upload } from "./api/upload";
+import { argumentSchema, taskInputSchema, Type } from "./types";
 import { submit } from "./api/task";
 import TaskGenPage from "./component/TaskGenPage";
 import { dailyReward } from "./api/point";
@@ -56,30 +55,12 @@ export default function Command() {
 
       if (heroType === "img2video") {
         args.push({
-          name: "tail_image_enabled",
+          name: "tail_image_enabled", // TODO
           value: String(values.tail_image_enabled),
         });
-        let url;
-        let fromWorkId;
-        if (values.filePath && values.filePath.length > 0) {
-          const toast = await showToast({
-            style: Toast.Style.Animated,
-            title: "正在上传图片",
-          });
-          try {
-            url = await upload(values.filePath[0], cookie, toast);
-          } catch (e) {
-            toast.style = Toast.Style.Failure;
-            toast.title = "图片上传失败, 请重试";
-            toast.message = e instanceof Error ? e.message : "未知错误";
-            return;
-          }
-        } else if (values.fromWork && values.fromWork.length > 0) {
-          const data = JSON.parse(values.fromWork) as z.infer<typeof workSchema>;
-          url = data.resource.resource;
-          fromWorkId = data.workId;
-        }
         type = values.genMode === "0" ? "m2v_img2video" : "m2v_img2video_hq";
+
+        const { url, fromWorkId } = await submitUpload(values, cookie);
         if (url) {
           inputs.push({ name: "input", inputType: "URL", url: url, fromWorkId });
         } else {
@@ -105,20 +86,24 @@ export default function Command() {
 
       const toast = await showToast(Toast.Style.Animated, "正在生成视频", "请稍等片刻");
 
-      const res = await submit(
-        {
-          arguments: args,
-          type,
-          inputs,
-        },
-        cookie,
-      );
+      try {
+        const res = await submit(
+          {
+            arguments: args,
+            type,
+            inputs,
+          },
+          cookie,
+        );
+        console.log(res);
+        toast.style = Toast.Style.Success;
+        toast.title = "生成任务已提交";
+        toast.message = `任务ID: ${res.data.task.id}`;
 
-      toast.style = Toast.Style.Success;
-      toast.title = "生成任务已提交";
-      toast.message = `任务ID: ${res.data.task.id}`;
-      console.log(res.data.task.id);
-      push(<TaskGenPage id={res.data.task.id} cookie={cookie} retryDelay={30000} />);
+        push(<TaskGenPage id={res.data.task.id} cookie={cookie} retryDelay={30000} />);
+      } catch (e) {
+        await showFailureToast(e, { title: "Task submission failed" });
+      }
     },
     initialValues: {
       prompt: "",

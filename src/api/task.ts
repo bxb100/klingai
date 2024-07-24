@@ -2,7 +2,7 @@ import { deleteWorksSchema, nullResSchema, taskStatusResSchema, taskSubmitResSch
 import { z } from "zod";
 import { defer, map, retry, tap } from "rxjs";
 import fetch from "node-fetch";
-import { isTaskStatusProcessing } from "../util";
+import { isTaskStatusProcessing, lN } from "../util";
 
 const submitAPI = "https://klingai.kuaishou.com/api/task/submit";
 const statusAPI = "https://klingai.kuaishou.com/api/task/status";
@@ -18,7 +18,11 @@ export async function submit(task: z.infer<typeof taskSubmitSchema>, cookie: str
     body: JSON.stringify(task),
   });
 
-  return (await res.json()) as z.infer<typeof taskSubmitResSchema>;
+  const json = (await res.json()) as z.infer<typeof taskSubmitResSchema>;
+  if (json.data.status === lN.SENSITIVE_TEXT || json.data.status === lN.SENSITIVE_IMAGE) {
+    throw new Error("敏感内容: " + Object.entries(lN).filter(([k, v]) => v === json.data.status)[0][0]);
+  }
+  return json;
 }
 
 export async function status(taskId: string, cookie: string) {
@@ -47,6 +51,7 @@ export function checkStatusUntilDone(
       return res;
     }),
     retry({
+      count: 300,
       delay: retryDelay ?? 1000,
     }),
   );
