@@ -1,4 +1,4 @@
-import { Action, ActionPanel, getPreferenceValues, Grid, Icon, Keyboard } from "@raycast/api";
+import { Action, ActionPanel, Grid, Icon, Keyboard } from "@raycast/api";
 import { userWorksPersonalV2 } from "./api/history";
 import { showFailureToast } from "@raycast/utils";
 import HistoryDetail from "./component/HistoryDetail";
@@ -13,11 +13,10 @@ export default function Command() {
   const [contentType, setContentType] = useState("");
   const [favored, setFavored] = useState("false");
 
-  const { cookie } = getPreferenceValues<Preferences>();
-  const { isLoading, data: history, pagination, error, mutate } = userWorksPersonalV2(cookie, contentType, favored);
+  const { isLoading, data: history, pagination, error, mutate } = userWorksPersonalV2(contentType, favored);
 
   useEffect(() => {
-    point(cookie).then((res) => {
+    point().then((res) => {
       setSearchPlaceholder("剩余灵感值: " + (res.data.total / 100).toFixed(2));
     });
   }, []);
@@ -28,17 +27,14 @@ export default function Command() {
   }
 
   function deleteTask(taskId: number, workId: number) {
-    deleteWorks(
-      {
-        workInfos: [
-          {
-            taskId: taskId,
-            workId: workId,
-          },
-        ],
-      },
-      cookie,
-    )
+    deleteWorks({
+      workInfos: [
+        {
+          taskId: taskId,
+          workId: workId,
+        },
+      ],
+    })
       .then(() => {
         mutate();
       })
@@ -64,10 +60,11 @@ export default function Command() {
       }
     >
       {history &&
-        history.map((item) => (
-          <Grid.Section title={item.task.taskInfo.arguments[0].value} key={item.task.id}>
-            {item.works.map((work) => {
-              return (
+        history.map((item) => {
+          const isVideo = item.task.type.indexOf("2video") != -1;
+          return (
+            <Grid.Section subtitle={item.task.type} title={item.task.taskInfo.arguments[0].value} key={item.task.id}>
+              {item.works.map((work) => (
                 <Grid.Item
                   actions={
                     <ActionPanel>
@@ -90,20 +87,15 @@ export default function Command() {
                     </ActionPanel>
                   }
                   content={{
-                    source:
-                      (work.contentType === "video" ? work.cover.resource : work.resource.resource) +
-                      imageURLPreviewArguments,
-                    fallback:
-                      isTaskStatusProcessing(work.status) && work.type.indexOf("2video") !== -1
-                        ? "video-loading.png"
-                        : "fail.png",
+                    source: (isVideo ? work.cover.resource : work.resource.resource) + imageURLPreviewArguments,
+                    fallback: isTaskStatusProcessing(work.status) && isVideo ? "video-loading.png" : "fail.png",
                   }}
                   key={work.workId}
                 />
-              );
-            })}
-          </Grid.Section>
-        ))}
+              ))}
+            </Grid.Section>
+          );
+        })}
     </Grid>
   );
 }

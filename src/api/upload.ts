@@ -11,18 +11,13 @@ import path from "node:path";
 import { concatMap, defer, firstValueFrom, map, retry, tap } from "rxjs";
 import * as fs from "node:fs";
 import { Toast } from "@raycast/api";
+import { fetch0 } from "./fetch";
 
 const uploadIssueTokenAPI = "https://klingai.kuaishou.com/api/upload/issue/token";
 const uploadVerifyAPI = "https://klingai.kuaishou.com/api/upload/verify/token";
 
-async function uploadIssueToken(filename: string, cookie: string) {
-  const res = await fetch(uploadIssueTokenAPI + "?filename=" + filename, {
-    headers: {
-      Cookie: cookie,
-    },
-  });
-
-  return (await res.json()) as z.infer<typeof uploadIssueTokenResSchema>;
+async function uploadIssueToken(filename: string) {
+  return await fetch0<z.infer<typeof uploadIssueTokenResSchema>>(uploadIssueTokenAPI + "?filename=" + filename);
 }
 
 async function uploadResume(endpoint: string, token: string) {
@@ -51,13 +46,8 @@ async function uploadComplete(endpoint: string, token: string) {
   return (await res.json()) as z.infer<typeof uploadCompleteResSchema>;
 }
 
-async function uploadVerify(token: string, cookie: string) {
-  const res = await fetch(`${uploadVerifyAPI}?token=${token}`, {
-    headers: {
-      Cookie: cookie,
-    },
-  });
-  return (await res.json()) as z.infer<typeof uploadVerifyResSchema>;
+async function uploadVerify(token: string) {
+  return await fetch0<z.infer<typeof uploadVerifyResSchema>>(`${uploadVerifyAPI}?token=${token}`);
 }
 
 type UploadState = {
@@ -65,7 +55,7 @@ type UploadState = {
   token: string;
 };
 
-export function upload(filepath: string, cookie: string, toast: Toast): Promise<string> {
+export function upload(filepath: string, toast: Toast): Promise<string> {
   const filename = path.parse(filepath).base;
 
   const resume$ = (state: UploadState) =>
@@ -115,7 +105,7 @@ export function upload(filepath: string, cookie: string, toast: Toast): Promise<
     );
 
   const verify$ = (state: UploadState) =>
-    defer(() => uploadVerify(state.token, cookie)).pipe(
+    defer(() => uploadVerify(state.token)).pipe(
       map((res) => {
         if (res.status === 200) {
           return res.data.url;
@@ -133,7 +123,7 @@ export function upload(filepath: string, cookie: string, toast: Toast): Promise<
     );
 
   return firstValueFrom(
-    defer(() => uploadIssueToken(filename, cookie)).pipe(
+    defer(() => uploadIssueToken(filename)).pipe(
       tap((v) => {
         console.debug(v);
         toast.title = "Requesting token";

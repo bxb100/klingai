@@ -7,12 +7,12 @@ import HistoryDetail from "./HistoryDetail";
 import { showFailureToast } from "@raycast/utils";
 import { imageURLPreviewArguments, isTaskStatusFailed } from "../util";
 
-export default function TaskGenPage({ id, cookie, retryDelay }: { id: number; cookie: string; retryDelay?: number }) {
+export default function TaskGenPage({ id, retryDelay }: { id: number; retryDelay?: number }) {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<z.infer<typeof taskStatusResSchema>>();
 
   useEffect(() => {
-    const subscription = checkStatusUntilDone(String(id), cookie, setData, retryDelay).subscribe({
+    const subscription = checkStatusUntilDone(String(id), setData, retryDelay).subscribe({
       next: (v) => {
         if (v.status != 200) {
           showFailureToast(new Error(v.message), { title: "Failed to fetch data" });
@@ -34,7 +34,7 @@ export default function TaskGenPage({ id, cookie, retryDelay }: { id: number; co
     return () => {
       subscription.unsubscribe();
     };
-  }, [id, cookie]);
+  }, [id]);
 
   return (
     <Grid isLoading={loading}>

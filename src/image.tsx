@@ -1,4 +1,4 @@
-import { Action, ActionPanel, Form, getPreferenceValues, Icon, showToast, Toast, useNavigation } from "@raycast/api";
+import { Action, ActionPanel, Form, Icon, showToast, Toast, useNavigation } from "@raycast/api";
 import { FormValidation, showFailureToast, useForm } from "@raycast/utils";
 import { submit } from "./api/task";
 import { useEffect } from "react";
@@ -8,7 +8,7 @@ import { argumentSchema, taskInputSchema, Type } from "./types";
 import TaskGenPage from "./component/TaskGenPage";
 import { styles } from "./util";
 import { dailyReward } from "./api/point";
-import { FormInput, FormInputContext, submitUpload } from "./component/FormInput";
+import { FormInput, FormInputTypeContext, submitUpload } from "./component/FormInput";
 
 type FormValues = {
   prompt: string;
@@ -22,13 +22,11 @@ type FormValues = {
 };
 
 export default function Command() {
-  const { cookie } = getPreferenceValues<Preferences>();
-
   const { push } = useNavigation();
 
   const { handleSubmit, itemProps, setValue } = useForm<FormValues>({
     onSubmit: async (values) => {
-      const { url, fromWorkId } = await submitUpload(values, cookie);
+      const { url, fromWorkId } = await submitUpload(values);
       const args: z.infer<typeof argumentSchema>[] = [
         { name: "prompt", value: values.prompt },
         {
@@ -52,19 +50,16 @@ export default function Command() {
       const toast = await showToast(Toast.Style.Animated, "正在生成图片", "请稍等片刻");
 
       try {
-        const res = await submit(
-          {
-            arguments: args,
-            type,
-            inputs,
-          },
-          cookie,
-        );
+        const res = await submit({
+          arguments: args,
+          type,
+          inputs,
+        });
         console.debug(res);
         toast.style = Toast.Style.Success;
         toast.title = "生成任务已提交";
         toast.message = `任务ID: ${res.data.task.id}`;
-        push(<TaskGenPage id={res.data.task.id} cookie={cookie} />);
+        push(<TaskGenPage id={res.data.task.id} />);
       } catch (e) {
         await showFailureToast(e, { title: "Task submission failed" });
       }
@@ -112,7 +107,7 @@ export default function Command() {
 
   useEffect(() => {
     // get daily free point
-    dailyReward(cookie);
+    dailyReward();
   }, []);
 
   return (
@@ -126,9 +121,9 @@ export default function Command() {
     >
       <Form.TextArea title={"创意描述"} {...itemProps.prompt} />
 
-      <FormInputContext.Provider value={{ cookie, contentType: "image" }}>
+      <FormInputTypeContext.Provider value={"image"}>
         <FormInput itemProps={itemProps} setValue={setValue} />
-      </FormInputContext.Provider>
+      </FormInputTypeContext.Provider>
 
       <Form.Separator />
       <Form.Dropdown title={"风格"} {...itemProps.style}>

@@ -1,7 +1,7 @@
-import { Action, ActionPanel, Form, getPreferenceValues, Icon, showToast, Toast, useNavigation } from "@raycast/api";
+import { Action, ActionPanel, Form, Icon, showToast, Toast, useNavigation } from "@raycast/api";
 import { useEffect, useState } from "react";
 import { FormValidation, showFailureToast, useForm } from "@raycast/utils";
-import { FormInput, FormInputContext, submitUpload } from "./component/FormInput";
+import { FormInput, FormInputTypeContext, submitUpload } from "./component/FormInput";
 import { z } from "zod";
 import { argumentSchema, taskInputSchema, Type } from "./types";
 import { submit } from "./api/task";
@@ -24,7 +24,6 @@ type FormValues = {
 };
 
 export default function Command() {
-  const { cookie } = getPreferenceValues<Preferences>();
   const [heroType, setHeroType] = useState<"txt2video" | "img2video" | string>("txt2video");
 
   const { push } = useNavigation();
@@ -60,7 +59,7 @@ export default function Command() {
         });
         type = values.genMode === "0" ? "m2v_img2video" : "m2v_img2video_hq";
 
-        const { url, fromWorkId } = await submitUpload(values, cookie);
+        const { url, fromWorkId } = await submitUpload(values);
         if (url) {
           inputs.push({ name: "input", inputType: "URL", url: url, fromWorkId });
         } else {
@@ -87,20 +86,17 @@ export default function Command() {
       const toast = await showToast(Toast.Style.Animated, "正在生成视频", "请稍等片刻");
 
       try {
-        const res = await submit(
-          {
-            arguments: args,
-            type,
-            inputs,
-          },
-          cookie,
-        );
+        const res = await submit({
+          arguments: args,
+          type,
+          inputs,
+        });
         console.log(res);
         toast.style = Toast.Style.Success;
         toast.title = "生成任务已提交";
         toast.message = `任务ID: ${res.data.task.id}`;
 
-        push(<TaskGenPage id={res.data.task.id} cookie={cookie} retryDelay={30000} />);
+        push(<TaskGenPage id={res.data.task.id} retryDelay={30000} />);
       } catch (e) {
         await showFailureToast(e, { title: "Task submission failed" });
       }
@@ -136,7 +132,7 @@ export default function Command() {
 
   useEffect(() => {
     // get daily free point
-    dailyReward(cookie);
+    dailyReward();
   }, []);
 
   return (
@@ -153,9 +149,9 @@ export default function Command() {
         <Form.Dropdown.Item title={"图生视频"} value={"img2video"} />
       </Form.Dropdown>
 
-      <FormInputContext.Provider value={{ cookie, contentType: "video" }}>
+      <FormInputTypeContext.Provider value={"video"}>
         {heroType != "txt2video" && <FormInput itemProps={itemProps} setValue={setValue} />}
-      </FormInputContext.Provider>
+      </FormInputTypeContext.Provider>
 
       <Form.TextArea title={heroType === "txt2video" ? "创意描述" : "图片创意描述(非必填)"} {...itemProps.prompt} />
       <Form.Separator />

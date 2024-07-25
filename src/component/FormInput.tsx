@@ -22,12 +22,9 @@ type Props = {
   };
 };
 
-export const FormInputContext = createContext({
-  cookie: "",
-  contentType: "image",
-});
+export const FormInputTypeContext = createContext("image");
 
-export async function submitUpload(values: Form.Values, cookie: string) {
+export async function submitUpload(values: Form.Values) {
   let url;
   let fromWorkId;
   if (values.filePath && values.filePath.length > 0) {
@@ -36,7 +33,7 @@ export async function submitUpload(values: Form.Values, cookie: string) {
       title: "正在上传图片",
     });
     try {
-      url = await upload(values.filePath[0], cookie, toast);
+      url = await upload(values.filePath[0], toast);
     } catch (e) {
       toast.style = Toast.Style.Failure;
       toast.title = "图片上传失败, 请重试";
@@ -64,8 +61,8 @@ export function FormInput(props: Props) {
       setValue("fromWork", undefined);
     }
   };
-  const { cookie, contentType } = useContext(FormInputContext);
-  const { isLoading, data } = userWorksPersonalV2(cookie, "image", "false");
+  const contentType = useContext(FormInputTypeContext);
+  const { isLoading, data } = userWorksPersonalV2("image", "false");
 
   const isVideo = useMemo(() => contentType === "video", [contentType]);
 

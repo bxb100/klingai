@@ -1,10 +1,13 @@
 import { historyItemSchema, worksResSchema } from "../types";
 import { z } from "zod";
 import { useFetch } from "@raycast/utils";
+import { getPreferenceValues } from "@raycast/api";
 
 const api = "https://klingai.kuaishou.com/api/user/works/personal/v2";
 
-export function userWorksPersonalV2(cookie: string, contentType: string, favored: string) {
+export function userWorksPersonalV2(contentType: string, favored: string) {
+  const { cookie } = getPreferenceValues<Preferences>();
+
   const pageSize = 30;
 
   const params = (page: number) => {
