@@ -28,7 +28,7 @@ export default function Command() {
 
   const { push } = useNavigation();
 
-  const { itemProps, setValue, handleSubmit } = useForm<FormValues>({
+  const { itemProps, setValue, handleSubmit, values } = useForm<FormValues>({
     onSubmit: async (values) => {
       const inputs: z.infer<typeof taskInputSchema>[] = [];
       let type: z.infer<typeof Type> = values.genMode === "0" ? "m2v_txt2video" : "m2v_txt2video_hq";
@@ -165,6 +165,9 @@ export default function Command() {
         <Form.Dropdown.Item title={"高性能"} value={"0"} />
         <Form.Dropdown.Item title={"高表现"} value={"1"} />
       </Form.Dropdown>
+      {values.genMode === "1" && (
+        <Form.Checkbox {...itemProps.tail_image_enabled} label={"增加尾帧"} title={"视频增强"} />
+      )}
       <Form.Dropdown title={"生成时长"} {...itemProps.duration} info={"10s(会员)"}>
         <Form.Dropdown.Item title={"5s"} value={"5"} />
         <Form.Dropdown.Item title={"10s"} value={"10"} />
