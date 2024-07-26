@@ -5,7 +5,7 @@ import HistoryDetail from "./component/HistoryDetail";
 import { deleteWorks } from "./api/task";
 import { useEffect, useState } from "react";
 import { imageURLPreviewArguments, isTaskStatusProcessing } from "./util";
-import { point } from "./api/point";
+import { dailyReward, point } from "./api/point";
 import Shortcut = Keyboard.Shortcut;
 
 export default function Command() {
@@ -16,9 +16,11 @@ export default function Command() {
   const { isLoading, data: history, pagination, error, mutate } = userWorksPersonalV2(contentType, favored);
 
   useEffect(() => {
-    point().then((res) => {
-      setSearchPlaceholder("剩余灵感值: " + (res.data.total / 100).toFixed(2));
-    });
+    dailyReward()
+      .then(() => point())
+      .then((res) => {
+        setSearchPlaceholder("剩余灵感值: " + (res.data.total / 100).toFixed(2));
+      });
   }, []);
 
   if (error) {
