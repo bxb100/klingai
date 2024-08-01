@@ -2,11 +2,9 @@ import { z, ZodTypeAny } from "zod";
 
 export const Type = z.enum([
   "mmu_txt2img_aiweb",
-  "mmu_img2img_aiweb",
-  // fast
+  "mmu_img2img_aiweb", // fast
   "m2v_txt2video",
-  "m2v_txt2video_hq",
-  // fast
+  "m2v_txt2video_hq", // fast
   "m2v_img2video",
   "m2v_img2video_hq",
 ]);
@@ -191,9 +189,15 @@ export const pointResSchema = _resDataSchema(
   }),
 );
 
+export const errorResSchema = z.object({
+  result: z.number(),
+});
+
 export const payRewardResSchema = _resDataSchema(
   z.object({
     order: z.string().nullable(),
     status: z.enum(["GRANTED"]),
   }),
 );
+
+export type PayRewardResType = z.infer<typeof payRewardResSchema> & z.infer<typeof errorResSchema>;

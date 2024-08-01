@@ -1,4 +1,4 @@
-import { payRewardResSchema, pointResSchema } from "../types";
+import { PayRewardResType, pointResSchema } from "../types";
 import { z } from "zod";
 import { fetch0 } from "./fetch";
 
@@ -10,5 +10,5 @@ export async function point() {
 }
 
 export async function dailyReward() {
-  return await fetch0<z.infer<typeof payRewardResSchema>>(`${payRewardAPI}?activity=login_bonus_daily`);
+  return await fetch0<PayRewardResType>(`${payRewardAPI}?activity=login_bonus_daily`);
 }

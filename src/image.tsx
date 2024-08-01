@@ -1,14 +1,15 @@
 import { Action, ActionPanel, Form, Icon, showToast, Toast, useNavigation } from "@raycast/api";
 import { FormValidation, showFailureToast, useForm } from "@raycast/utils";
 import { submit } from "./api/task";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { z } from "zod";
 import path from "node:path";
 import { argumentSchema, taskInputSchema, Type } from "./types";
 import TaskGenPage from "./component/TaskGenPage";
-import { styles } from "./util";
+import { isCookieExpired, styles } from "./util";
 import { dailyReward } from "./api/point";
 import { FormInput, FormInputTypeContext, submitUpload } from "./component/FormInput";
+import { CookieExpiredPage } from "./component/CookieExpiredPage";
 
 type FormValues = {
   prompt: string;
@@ -105,47 +106,55 @@ export default function Command() {
     },
   });
 
+  const [cookieExpired, setCookieExpired] = useState(false);
+
   useEffect(() => {
     // get daily free point
-    dailyReward();
+    dailyReward().then(isCookieExpired).then(setCookieExpired);
   }, []);
 
-  return (
-    <Form
-      actions={
-        <ActionPanel>
-          <Action.SubmitForm title="立即生成" onSubmit={handleSubmit} icon={Icon.Image} />
-        </ActionPanel>
-      }
-      searchBarAccessory={<Form.LinkAccessory target="https://klingai.kuaishou.com/text-to-image/new" text="AI 图片" />}
-    >
-      <Form.TextArea title={"创意描述"} {...itemProps.prompt} />
+  if (cookieExpired) {
+    return <CookieExpiredPage />;
+  } else {
+    return (
+      <Form
+        actions={
+          <ActionPanel>
+            <Action.SubmitForm title="立即生成" onSubmit={handleSubmit} icon={Icon.Image} />
+          </ActionPanel>
+        }
+        searchBarAccessory={
+          <Form.LinkAccessory target="https://klingai.kuaishou.com/text-to-image/new" text="AI 图片" />
+        }
+      >
+        <Form.TextArea title={"创意描述"} {...itemProps.prompt} />
 
-      <FormInputTypeContext.Provider value={"image"}>
-        <FormInput itemProps={itemProps} setValue={setValue} />
-      </FormInputTypeContext.Provider>
+        <FormInputTypeContext.Provider value={"image"}>
+          <FormInput itemProps={itemProps} setValue={setValue} />
+        </FormInputTypeContext.Provider>
 
-      <Form.Separator />
-      <Form.Dropdown title={"风格"} {...itemProps.style}>
-        {styles.map((value) => {
-          const zh = value[1].caption.zh;
-          return <Form.Dropdown.Item title={zh} value={zh} icon={value[1].image} key={value[0]} />;
-        })}
-      </Form.Dropdown>
-      <Form.Dropdown title={"比例"} {...itemProps.aspect_ratio}>
-        <Form.Dropdown.Item title={"1:1"} value={"1:1"} />
-        <Form.Dropdown.Item title={"16:9"} value={"16:9"} />
-        <Form.Dropdown.Item title={"4:3"} value={"4:3"} />
-        <Form.Dropdown.Item title={"3:2"} value={"3:2"} />
-        <Form.Dropdown.Item title={"2:3"} value={"2:3"} />
-        <Form.Dropdown.Item title={"3:4"} value={"3:4"} />
-        <Form.Dropdown.Item title={"9:16"} value={"9:16"} />
-      </Form.Dropdown>
-      <Form.Dropdown title={"生成数量"} {...itemProps.imageCount}>
-        {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((value) => (
-          <Form.Dropdown.Item title={value.toString()} value={value.toString()} key={value} />
-        ))}
-      </Form.Dropdown>
-    </Form>
-  );
+        <Form.Separator />
+        <Form.Dropdown title={"风格"} {...itemProps.style}>
+          {styles.map((value) => {
+            const zh = value[1].caption.zh;
+            return <Form.Dropdown.Item title={zh} value={zh} icon={value[1].image} key={value[0]} />;
+          })}
+        </Form.Dropdown>
+        <Form.Dropdown title={"比例"} {...itemProps.aspect_ratio}>
+          <Form.Dropdown.Item title={"1:1"} value={"1:1"} />
+          <Form.Dropdown.Item title={"16:9"} value={"16:9"} />
+          <Form.Dropdown.Item title={"4:3"} value={"4:3"} />
+          <Form.Dropdown.Item title={"3:2"} value={"3:2"} />
+          <Form.Dropdown.Item title={"2:3"} value={"2:3"} />
+          <Form.Dropdown.Item title={"3:4"} value={"3:4"} />
+          <Form.Dropdown.Item title={"9:16"} value={"9:16"} />
+        </Form.Dropdown>
+        <Form.Dropdown title={"生成数量"} {...itemProps.imageCount}>
+          {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((value) => (
+            <Form.Dropdown.Item title={value.toString()} value={value.toString()} key={value} />
+          ))}
+        </Form.Dropdown>
+      </Form>
+    );
+  }
 }

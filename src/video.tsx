@@ -7,6 +7,8 @@ import { argumentSchema, taskInputSchema, Type } from "./types";
 import { submit } from "./api/task";
 import TaskGenPage from "./component/TaskGenPage";
 import { dailyReward } from "./api/point";
+import { isCookieExpired } from "./util";
+import { CookieExpiredPage } from "./component/CookieExpiredPage";
 
 type FormValues = {
   prompt: string;
@@ -130,65 +132,72 @@ export default function Command() {
     },
   });
 
+  const [cookieExpired, setCookieExpired] = useState(false);
+
   useEffect(() => {
     // get daily free point
-    dailyReward();
+    dailyReward().then(isCookieExpired).then(setCookieExpired);
   }, []);
 
-  return (
-    <Form
-      searchBarAccessory={<Form.LinkAccessory target="https://klingai.kuaishou.com/text-to-video/new" text="AI 视频" />}
-      actions={
-        <ActionPanel>
-          <Action.SubmitForm title="立即生成" onSubmit={handleSubmit} icon={Icon.Video} />
-        </ActionPanel>
-      }
-    >
-      <Form.Dropdown id={"heroType"} title={"类型"} defaultValue={heroType} onChange={setHeroType} storeValue={true}>
-        <Form.Dropdown.Item title={"文生视频"} value={"txt2video"} />
-        <Form.Dropdown.Item title={"图生视频"} value={"img2video"} />
-      </Form.Dropdown>
-
-      <FormInputTypeContext.Provider value={"video"}>
-        {heroType != "txt2video" && <FormInput itemProps={itemProps} setValue={setValue} />}
-      </FormInputTypeContext.Provider>
-
-      <Form.TextArea title={heroType === "txt2video" ? "创意描述" : "图片创意描述(非必填)"} {...itemProps.prompt} />
-      <Form.Separator />
-
-      <Form.TextField title={"创意想象力"} {...itemProps.cfg} />
-      <Form.Dropdown
-        title={"生成模式"}
-        {...itemProps.genMode}
-        info={"高性能: 生成速度更快\n高表现: 画面质量更佳(会员)"}
-      >
-        <Form.Dropdown.Item title={"高性能"} value={"0"} />
-        <Form.Dropdown.Item title={"高表现"} value={"1"} />
-      </Form.Dropdown>
-      {values.genMode === "1" && (
-        <Form.Checkbox {...itemProps.tail_image_enabled} label={"增加尾帧"} title={"视频增强"} />
-      )}
-      <Form.Dropdown title={"生成时长"} {...itemProps.duration} info={"10s(会员)"}>
-        <Form.Dropdown.Item title={"5s"} value={"5"} />
-        <Form.Dropdown.Item title={"10s"} value={"10"} />
-      </Form.Dropdown>
-      {heroType === "txt2video" && (
-        <Form.Dropdown title={"视频比例"} {...itemProps.aspect_ratio}>
-          <Form.Dropdown.Item title={"16:9"} value={"16:9"} />
-          <Form.Dropdown.Item title={"9:16"} value={"9:16"} />
-          <Form.Dropdown.Item title={"1:1"} value={"1:1"} />
-        </Form.Dropdown>
-      )}
-
-      <Form.Separator />
-
-      <Form.TextArea
-        title={"不希望呈现的内容"}
-        placeholder={
-          "写下你不希望在视频中呈现的内容。\n例如：动画、模糊、变形、毁容、低质量、拼贴、粒状、标志、抽象、插图、计算机生成、扭曲 …"
+  if (cookieExpired) {
+    return <CookieExpiredPage />;
+  } else
+    return (
+      <Form
+        searchBarAccessory={
+          <Form.LinkAccessory target="https://klingai.kuaishou.com/text-to-video/new" text="AI 视频" />
         }
-        {...itemProps.negative_prompt}
-      />
-    </Form>
-  );
+        actions={
+          <ActionPanel>
+            <Action.SubmitForm title="立即生成" onSubmit={handleSubmit} icon={Icon.Video} />
+          </ActionPanel>
+        }
+      >
+        <Form.Dropdown id={"heroType"} title={"类型"} defaultValue={heroType} onChange={setHeroType} storeValue={true}>
+          <Form.Dropdown.Item title={"文生视频"} value={"txt2video"} />
+          <Form.Dropdown.Item title={"图生视频"} value={"img2video"} />
+        </Form.Dropdown>
+
+        <FormInputTypeContext.Provider value={"video"}>
+          {heroType != "txt2video" && <FormInput itemProps={itemProps} setValue={setValue} />}
+        </FormInputTypeContext.Provider>
+
+        <Form.TextArea title={heroType === "txt2video" ? "创意描述" : "图片创意描述(非必填)"} {...itemProps.prompt} />
+        <Form.Separator />
+
+        <Form.TextField title={"创意想象力"} {...itemProps.cfg} />
+        <Form.Dropdown
+          title={"生成模式"}
+          {...itemProps.genMode}
+          info={"高性能: 生成速度更快\n高表现: 画面质量更佳(会员)"}
+        >
+          <Form.Dropdown.Item title={"高性能"} value={"0"} />
+          <Form.Dropdown.Item title={"高表现"} value={"1"} />
+        </Form.Dropdown>
+        {values.genMode === "1" && (
+          <Form.Checkbox {...itemProps.tail_image_enabled} label={"增加尾帧"} title={"视频增强"} />
+        )}
+        <Form.Dropdown title={"生成时长"} {...itemProps.duration} info={"10s(会员)"}>
+          <Form.Dropdown.Item title={"5s"} value={"5"} />
+          <Form.Dropdown.Item title={"10s"} value={"10"} />
+        </Form.Dropdown>
+        {heroType === "txt2video" && (
+          <Form.Dropdown title={"视频比例"} {...itemProps.aspect_ratio}>
+            <Form.Dropdown.Item title={"16:9"} value={"16:9"} />
+            <Form.Dropdown.Item title={"9:16"} value={"9:16"} />
+            <Form.Dropdown.Item title={"1:1"} value={"1:1"} />
+          </Form.Dropdown>
+        )}
+
+        <Form.Separator />
+
+        <Form.TextArea
+          title={"不希望呈现的内容"}
+          placeholder={
+            "写下你不希望在视频中呈现的内容。\n例如：动画、模糊、变形、毁容、低质量、拼贴、粒状、标志、抽象、插图、计算机生成、扭曲 …"
+          }
+          {...itemProps.negative_prompt}
+        />
+      </Form>
+    );
 }

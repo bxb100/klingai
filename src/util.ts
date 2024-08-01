@@ -1,4 +1,6 @@
-// all copy from klingai.kuishou.com
+// copy from klingai.kuishou.com
+
+import { PayRewardResType } from "./types";
 
 export const lN = {
     UNKNOWN: 0,
@@ -135,3 +137,7 @@ export function isTaskStatusFailed(e: number) {
 }
 
 export const imageURLPreviewArguments = "?x-oss-process=image/resize%2Cw_376%2Ch_376%2Cm_mfit";
+
+export function isCookieExpired(res: PayRewardResType) {
+  return res.result == -401;
+}
