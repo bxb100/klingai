@@ -68,11 +68,15 @@ export default function Command() {
             const isVideo = item.task.type.indexOf("2video") != -1;
             return (
               <Grid.Section subtitle={item.task.type} title={item.task.taskInfo.arguments[0].value} key={item.task.id}>
-                {item.works.map((work) => (
+                {item.works.map((work, index) => (
                   <Grid.Item
                     actions={
                       <ActionPanel>
-                        <Action.Push title={"Detail"} target={<HistoryDetail work={work} />} icon={Icon.Bird} />
+                        <Action.Push
+                          title={"Detail"}
+                          target={<HistoryDetail works={item.works} index={index} />}
+                          icon={Icon.Bird}
+                        />
                         <Action
                           title={"我收藏的"}
                           icon={favored == "true" ? Icon.Star : Icon.StarDisabled}

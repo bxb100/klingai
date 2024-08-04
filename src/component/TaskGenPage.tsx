@@ -40,11 +40,11 @@ export default function TaskGenPage({ id, retryDelay }: { id: number; retryDelay
     <Grid isLoading={loading}>
       {data?.data && (
         <Grid.Section title={data.data.task.taskInfo.arguments[0].value}>
-          {data.data.works.map((work) => (
+          {data.data.works.map((work, index) => (
             <Grid.Item
               actions={
                 <ActionPanel>
-                  <Action.Push title={"Detail"} target={<HistoryDetail work={work} />} />
+                  <Action.Push title={"Detail"} target={<HistoryDetail works={data.data.works} index={index} />} />
                 </ActionPanel>
               }
               content={{
